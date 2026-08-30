@@ -24,10 +24,17 @@ const emailInput = document.getElementById('email');
 const phoneInput = document.getElementById('phone');
 const waitlistCounter = document.getElementById('waitlist-counter');
 const waitlistCount = document.getElementById('waitlist-count');
+const spotsLeftHero = document.getElementById('spots-left-hero');
+const spotsLeftVal = document.getElementById('spots-left-val');
+const spotsProgressFill = document.getElementById('spots-progress-fill');
+const userSpotNumber = document.getElementById('user-spot-number');
 const navbar = document.getElementById('navbar');
 const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 const navLinks = document.getElementById('nav-links');
 const toastContainer = document.getElementById('toast-container');
+
+const TOTAL_CAPACITY = 500;
+let currentWaitlistCount = 0;
 
 // ============================================
 // STARFIELD ANIMATION
@@ -228,7 +235,11 @@ form.addEventListener('submit', async (e) => {
       // Simulate delay
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Show success
+      // Demo mode — show success
+      const spotPos = currentWaitlistCount + 1;
+      if (userSpotNumber) userSpotNumber.textContent = `#${spotPos}`;
+      updateCounters(spotPos);
+
       form.style.display = 'none';
       formSuccess.classList.add('visible');
       return;
@@ -254,13 +265,17 @@ form.addEventListener('submit', async (e) => {
       throw error;
     }
 
+    // Calculate spot position
+    const userSpot = currentWaitlistCount + 1;
+    if (userSpotNumber) userSpotNumber.textContent = `#${userSpot}`;
+
     // Success
     form.style.display = 'none';
     formSuccess.classList.add('visible');
     showToast('Welcome to the Nexus Terminal waitlist! 🚀');
 
-    // Refresh count
-    fetchWaitlistCount();
+    // Refresh live count & progress bar
+    await fetchWaitlistCount();
 
   } catch (err) {
     console.error('Waitlist submission error:', err);
@@ -272,24 +287,36 @@ form.addEventListener('submit', async (e) => {
 });
 
 // ============================================
-// WAITLIST COUNT (Optional — reads from DB)
+// WAITLIST COUNT & SPOTS REMAINING
 // ============================================
+function updateCounters(count) {
+  currentWaitlistCount = count;
+  const spotsLeft = Math.max(0, TOTAL_CAPACITY - count);
+  
+  if (spotsLeftHero) spotsLeftHero.textContent = spotsLeft.toLocaleString();
+  if (spotsLeftVal) spotsLeftVal.textContent = spotsLeft.toLocaleString();
+  if (waitlistCount) waitlistCount.textContent = count.toLocaleString();
+  
+  const percentage = count > 0 ? Math.min(100, Math.max(2, (count / TOTAL_CAPACITY) * 100)) : 0;
+  if (spotsProgressFill) spotsProgressFill.style.width = `${percentage}%`;
+}
+
 async function fetchWaitlistCount() {
   try {
-    if (SUPABASE_ANON_KEY === 'YOUR_ANON_KEY_HERE') return;
+    if (SUPABASE_ANON_KEY === 'YOUR_ANON_KEY_HERE') return 0;
 
     const { count, error } = await supabaseClient
       .from('waitlist_signups')
       .select('*', { count: 'exact', head: true });
 
-    if (!error && count !== null && count > 0) {
-      waitlistCount.textContent = count.toLocaleString();
-      waitlistCounter.style.display = 'block';
+    if (!error && count !== null) {
+      updateCounters(count);
+      return count;
     }
   } catch (err) {
-    // Silently fail — counter is optional
     console.warn('Could not fetch waitlist count:', err);
   }
+  return 0;
 }
 
 // Fetch count on load
