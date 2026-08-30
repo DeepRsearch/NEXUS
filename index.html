@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Nexus Terminal — A downloadable trading analytics platform combining live market data, options flow, proprietary GEX, Greeks, cross-asset levels, and trader-focused tools in one terminal. Join the waitlist.">
+  <meta name="keywords" content="trading terminal, options analytics, GEX, Greeks, market data, trading tools, Nexus Terminal">
+  <meta name="theme-color" content="#0a0a1a">
+  <meta property="og:title" content="Nexus Terminal — Accurate Data. Precision Speed. Sharpened Edge.">
+  <meta property="og:description" content="The all-in-one trading analytics terminal. Live market data, proprietary GEX, Greeks, and cross-asset levels. Join the waitlist.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nexusterminal.info">
+  <meta property="og:image" content="https://nexusterminal.info/theme.png">
+  <title>Nexus Terminal — Join the Waitlist</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Starfield Canvas -->
+  <canvas id="starfield" aria-hidden="true"></canvas>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- ======== NAVBAR ======== -->
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="#" class="navbar-brand">
+        <img src="logo.png" alt="Nexus Terminal Logo" width="38" height="38">
+        <span>NEXUS</span>
+      </a>
+      <ul class="navbar-links" id="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#waitlist">Waitlist</a></li>
+      </ul>
+      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle navigation menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ======== HERO ======== -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <img src="theme.png" alt="Nexus Terminal cosmic background" width="1600" height="800">
+    </div>
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="hero-content">
+      <img src="logo.png" alt="Nexus Terminal" class="hero-logo" width="120" height="120">
+      <h1>NEXUS TERMINAL</h1>
+      <p class="hero-tagline">Accurate Data and Precision Speed<br>for a Sharpened Edge</p>
+      <p class="hero-subtitle">The all-in-one trading analytics platform. Live market data, proprietary GEX, Greeks, cross-asset levels — everything you need in one terminal.</p>
+      <div class="hero-cta">
+        <a href="#waitlist" class="btn btn-primary">
+          <span>Join the Waitlist</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== FEATURES ======== -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header reveal">
+        <h2>BUILT FOR TRADERS</h2>
+        <div class="section-divider"></div>
+        <p>Every tool you need for decisive, data-driven trading — unified in a single desktop terminal.</p>
+      </div>
+
+      <div class="features-grid">
+
+        <!-- Feature 1: Live Market Data -->
+        <div class="feature-card reveal reveal-delay-1">
+          <div class="feature-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--purple-light)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+          </div>
+          <h3>LIVE MARKET DATA</h3>
+          <p>Real-time streaming quotes, options chains, and market internals. Zero delay between you and the market.</p>
+        </div>
+
+        <!-- Feature 2: Proprietary GEX -->
+        <div class="feature-card reveal reveal-delay-2">
+          <div class="feature-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18M9 21V9"/>
+            </svg>
+          </div>
+          <h3>PROPRIETARY GEX</h3>
+          <p>Our exclusive Gamma Exposure analytics give you the edge to see where the market is pinned and where it breaks.</p>
+        </div>
+
+        <!-- Feature 3: Greeks Visualization -->
+        <div class="feature-card reveal reveal-delay-3">
+          <div class="feature-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent-pink)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 12l2 2 4-4"/>
+            </svg>
+          </div>
+          <h3>GREEKS ENGINE</h3>
+          <p>Full-spectrum Greeks analysis — Delta, Gamma, Theta, Vega, Rho — all visualized with precision and speed.</p>
+        </div>
+
+        <!-- Feature 4: Cross-Asset Levels -->
+        <div class="feature-card reveal reveal-delay-4">
+          <div class="feature-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <h3>CROSS-ASSET LEVELS</h3>
+          <p>Key support, resistance, and pivot levels across equities, indices, and commodities — all correlated in real-time.</p>
+        </div>
+
+        <!-- Feature 5: Options Flow -->
+        <div class="feature-card reveal reveal-delay-5">
+          <div class="feature-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20V10"/>
+              <path d="M18 20V4"/>
+              <path d="M6 20v-4"/>
+            </svg>
+          </div>
+          <h3>OPTIONS FLOW</h3>
+          <p>Track unusual options activity and dark pool prints. See what the smart money is doing before the move happens.</p>
+        </div>
+
+        <!-- Feature 6: Desktop Terminal -->
+        <div class="feature-card reveal reveal-delay-5">
+          <div class="feature-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--purple-glow)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <path d="M8 21h8M12 17v4"/>
+            </svg>
+          </div>
+          <h3>DESKTOP TERMINAL</h3>
+          <p>A native, downloadable application built for speed. No browser tabs, no lag — just pure, focused execution.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== WAITLIST ======== -->
+  <section class="section waitlist-section" id="waitlist">
+    <div class="container">
+      <div class="section-header reveal">
+        <h2>JOIN THE WAITLIST</h2>
+        <div class="section-divider"></div>
+        <p>Be among the first to experience Nexus Terminal. Reserve your spot and get early access.</p>
+      </div>
+
+      <div class="waitlist-card reveal">
+
+        <!-- Form -->
+        <form id="waitlist-form" novalidate>
+          <div class="form-group">
+            <label for="nickname">Nickname</label>
+            <input type="text" id="nickname" name="nickname" placeholder="Your desired username" required autocomplete="username">
+            <p class="form-error" id="nickname-error">Please enter a nickname.</p>
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
+            <p class="form-error" id="email-error">Please enter a valid email address.</p>
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone Number <span class="optional-label">(optional)</span></label>
+            <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000" autocomplete="tel">
+            <p class="form-error" id="phone-error">Please enter a valid phone number.</p>
+          </div>
+          <button type="submit" class="btn btn-primary btn-submit" id="submit-btn">
+            <span class="btn-text">Reserve My Spot</span>
+            <div class="spinner" aria-hidden="true"></div>
+          </button>
+        </form>
+
+        <!-- Success State -->
+        <div class="form-success" id="form-success">
+          <div class="success-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+          </div>
+          <h3>You're on the List!</h3>
+          <p>We'll reach out when Nexus Terminal is ready for you. Stay sharp.</p>
+        </div>
+
+        <!-- Counter -->
+        <div class="waitlist-counter" id="waitlist-counter" style="display:none;">
+          <span class="count" id="waitlist-count">0</span>
+          <br>
+          <span class="count-label">traders on the waitlist</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== FOOTER ======== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-brand">
+        <img src="logo.png" alt="Nexus" width="28" height="28">
+        <span>NEXUS TERMINAL</span>
+      </div>
+      <p class="footer-copy">&copy; 2026 Nexus Terminal. All rights reserved.</p>
+      <ul class="footer-links">
+        <li><a href="mailto:contact@nexusterminal.info">Contact</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <!-- Supabase JS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
