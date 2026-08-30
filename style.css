@@ -307,13 +307,18 @@ img {
   z-index: 2;
   max-width: 800px;
   padding: var(--space-4xl) var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin: 0 auto;
 }
 
 .hero-logo {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  margin: 0 auto var(--space-xl);
+  margin: 0 auto var(--space-md);
   animation: floatLogo 6s ease-in-out infinite;
   filter: drop-shadow(0 0 30px rgba(108, 60, 224, 0.4));
 }
@@ -783,6 +788,7 @@ img {
 .spots-badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 6px 16px;
   border-radius: var(--radius-full);
@@ -793,7 +799,7 @@ img {
   font-size: 0.85rem;
   font-weight: 500;
   letter-spacing: 0.5px;
-  margin-bottom: var(--space-lg);
+  margin: 0 auto var(--space-lg) auto;
   box-shadow: 0 0 20px rgba(108, 60, 224, 0.2);
 }
 
