@@ -245,11 +245,13 @@ form.addEventListener('submit', async (e) => {
       return;
     }
 
+    // Generate a strong password meeting all possible Supabase complexity rules
+    const securePassword = 'Nexus2026!' + crypto.randomUUID().replace(/-/g, '') + 'A#';
+
     // Insert into Supabase Auth
     const { data, error } = await supabaseClient.auth.signUp({
       email: email,
-      // Since it's a waitlist, generate a secure random password in background
-      password: crypto.randomUUID() + Math.random().toString(36),
+      password: securePassword,
       options: {
         data: {
           nickname: nickname,
@@ -260,11 +262,21 @@ form.addEventListener('submit', async (e) => {
 
     if (error) {
       // Catch instance where user email is already registered
-      if (error.message.includes('already registered') || error.status === 422) {
-        showToast('This email is already on the waitlist! 🎉', 'info');
+      if (error.message?.toLowerCase().includes('already registered') || error.status === 422) {
+        showToast('This email is already on the waitlist! 🎉', 'info', 6000);
+        return;
+      }
+      if (error.message?.toLowerCase().includes('rate limit') || error.status === 429) {
+        showToast('Email rate limit reached. Please wait a few minutes or check your inbox/spam folder! ⏳', 'error', 8000);
         return;
       }
       throw error;
+    }
+
+    // Check if user is already registered (Supabase returns empty identities array when email confirmation is enabled)
+    if (data?.user && data.user.identities && data.user.identities.length === 0) {
+      showToast('This email is already on the waitlist! Please check your spam folder for your link. 🎉', 'info', 7000);
+      return;
     }
 
     // Insert into profiles table immediately so DB count increments right away
@@ -308,7 +320,8 @@ form.addEventListener('submit', async (e) => {
 
   } catch (err) {
     console.error('Waitlist submission error:', err);
-    showToast('Something went wrong. Please try again.', 'error');
+    const errorMsg = err?.message || err?.error_description || 'Something went wrong. Please try again.';
+    showToast(errorMsg, 'error', 7000);
   } finally {
     submitBtn.classList.remove('loading');
     submitBtn.disabled = false;
