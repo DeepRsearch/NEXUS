@@ -184,65 +184,47 @@
       <div class="section-header reveal">
         <h2>JOIN THE WAITLIST</h2>
         <div class="section-divider"></div>
-        <p>Be among the first to experience Nexus Terminal. Limited to the first 500 traders.</p>
+        <p>Be among the first to experience Nexus Terminal. Reserve your spot and get early access.</p>
       </div>
 
       <div class="waitlist-card reveal">
 
-        <!-- Spots Remaining Header -->
-        <div class="waitlist-spots-header">
-          <div class="spots-status">
-            <span class="spots-tag">Batch 1 Access</span>
-            <span class="spots-left-text"><strong id="spots-left-val">500</strong> / 500 spots left</span>
-          </div>
-          <div class="spots-progress-bar">
-            <div class="spots-progress-fill" id="spots-progress-fill" style="width: 0%;"></div>
-          </div>
-        </div>
-
         <!-- Form -->
         <form id="waitlist-form">
-          
-          <div class="input-group">
+          <div class="form-group">
             <label for="nickname">Nickname</label>
-            <input type="text" id="nickname" required placeholder="Your desired nickname...">
-            <!-- The script expects this specific ID pair if validation triggers -->
-            <span id="nickname-error" class="error-msg" style="display:none; color:#ff3366;">Nickname is reqired</span>
+            <input type="text" id="nickname" required placeholder="Test Trader">
+            <div id="nickname-error" class="form-error">Please enter a nickname</div>
           </div>
-          
-          <div class="input-group">
+
+          <div class="form-group">
             <label for="email">Email Address</label>
-            <input type="email" id="email" required placeholder="someone@Email.com">
-            <span id="email-error" class="error-msg" style="display:none; color:#ff3366;">Valid Email Required</span>
+            <input type="email" id="email" required placeholder="test@example.com">
+            <div id="email-error" class="form-error">Please enter a valid email address</div>
           </div>
-          
-          <div class="input-group">
-            <label for="phone">Phone Number (optional)</label>
-            <input type="tel" id="phone" placeholder="+1 111 222 1234">
-            <span id="phone-error" class="error-msg" style="display:none; color:#ff3366;">Invalid Phone # Format</span>
-          <div>
-            
-          <button type="submit" id="submit-btn">Reserve My Spot</button>
+
+          <div class="form-group">
+            <label for="phone">Phone Number <span class="optional-label">(optional)</span></label>
+            <input type="tel" id="phone" placeholder="+1 (555) 000-0000">
+            <div id="phone-error" class="form-error">Please enter a valid phone number</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-submit" id="submit-btn">
+            <span class="btn-text">Reserve My Spot</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
         </form>
-            
 
         <!-- Success State -->
-        <div id="form-success" style="display: none;">
-          <h2>// NODE_RESERVED</h2>
-          <div class="spot_highlight" style="font-size: 24px; color: #00ffcc; margin: 20px 0;">
-            POSITION PENDING: <span id="user-spot-number">#---</span>
-          </div>
-          <p>We've dispatched and encrypted verification link to your inbox.</p>
-          <p><strong>Click the email link to lock in and finalize your position!</strong></p>
-        </div>
-          
+        <div class="form-success" id="form-success">
           <div class="spot-number-badge">
             <span class="spot-number-label">YOUR WAITLIST POSITION</span>
             <div class="spot-number-val" id="user-spot-number">#1</div>
           </div>
 
           <h3>You're on the List!</h3>
-          <p>We'll reach out when Nexus Terminal is ready for you. Stay sharp.</p>
+          <p>We've dispatched a verification link to your inbox.<br>Please click the email link to lock in and finalize your position!</p>
+          <p style="margin-top: 16px; font-size: 0.85rem; color: var(--text-muted);">We'll reach out when Nexus Terminal is ready for you. Stay sharp.</p>
         </div>
 
       </div>

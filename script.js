@@ -247,26 +247,25 @@ form.addEventListener('submit', async (e) => {
 
     // Insert into Supabase
     const { data, error } = await supabaseClient.auth.signUp({
-       email: eamil,
-       //since its just a waitlist, we make a random36 string in background
-       password: crypto.randomUUID() + Math.random().toString(36),
-       options: {
-          data: {
-             nickname : nickname,
-             phone_number: phone || null
-          }
-       }
+      email: email,
+      // Since it's a waitlist, generate a secure random password in background
+      password: crypto.randomUUID() + Math.random().toString(36),
+      options: {
+        data: {
+          nickname: nickname,
+          phone_number: phone || null
+        }
+      }
     });
 
-     if (error) {
-        //Catch instance where user email is already registered
-        if (error.message.includes('already registered') || error.status === 422) {
-           showToast('Tjis email is already on the waitlist! 🎉', 'info');
-           return;
-        }
-        throw error;
-     }
-     
+    if (error) {
+      // Catch instance where user email is already registered
+      if (error.message.includes('already registered') || error.status === 422) {
+        showToast('This email is already on the waitlist! 🎉', 'info');
+        return;
+      }
+      throw error;
+    }
 
     // Calculate spot position
     const userSpot = currentWaitlistCount + 1;
@@ -275,7 +274,7 @@ form.addEventListener('submit', async (e) => {
     // Success
     form.style.display = 'none';
     formSuccess.classList.add('visible');
-    showToast('Check your email to Verify and Claim your spot on the Nexus Terminal waitlist! 🚀', 'Success!');
+    showToast('Check your email to verify and claim your spot on the Nexus Terminal waitlist! 🚀', 'info');
 
     // Refresh live count & progress bar
     await fetchWaitlistCount();
@@ -307,7 +306,7 @@ function updateCounters(count) {
 async function fetchWaitlistCount() {
   try {
     if (SUPABASE_ANON_KEY === 'YOUR_ANON_KEY_HERE') return 0;
-      // changes target from waitlist to profiles
+    // Query profiles count
     const { count, error } = await supabaseClient
       .from('profiles')
       .select('*', { count: 'exact', head: true });
@@ -330,28 +329,28 @@ fetchWaitlistCount();
 // EMAIL VERIFICATION REDIRECT CHECK
 //============================================
 function checkVerificationRedirect() {
-   const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(window.location.search);
 
-   // When supabase Processes an email link, it can return an access_token,
-   // or a system code via type=signup hashes/query strings.
-   const inVerifiedReturn = window.location.hash.includes('access_token=') || urlParams.get('type') === 'signup';
+  // When supabase processes an email link, it can return an access_token,
+  // or a system code via type=signup hashes/query strings.
+  const isVerifiedReturn = window.location.hash.includes('access_token=') || urlParams.get('type') === 'signup';
 
-   if (isVerifieReturn) {
-      // 1. give the user visual confirmation
-      showToast('Email verified successfully! you are officially locked into the Nexus Terminal list! 🚀', 'success', 8000);
-      //2. Playfull uX option: trigger client side animation
-      if (spotsLeftHero) {
-         spotsLeftHero.style.color = '#00ffcc'; //temporary color pulse
-      }
-      //3. clean up the address bar so the ugly tokens vanish from view
-      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-      window.history.replaceState({ path: cleanUrl }, '', clearUrl);
-   }
+  if (isVerifiedReturn) {
+    // 1. Give the user visual confirmation
+    showToast('Email verified successfully! You are officially locked into the Nexus Terminal list! 🚀', 'info', 8000);
+    // 2. Playful UX option: trigger client side animation
+    if (spotsLeftHero) {
+      spotsLeftHero.style.color = '#00ffcc'; // temporary color pulse
+    }
+    // 3. Clean up the address bar so the tokens vanish from view
+    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+    window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+  }
 }
 
-//check for redirect tokens when the com contents fully paints
+// Check for redirect tokens when the DOM contents fully paint
 document.addEventListener('DOMContentLoaded', () => {
-   checkVericationRedirect();
+  checkVerificationRedirect();
 });
 
 
