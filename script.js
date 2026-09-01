@@ -1,6 +1,6 @@
 /* ============================================
-   NEXUS TERMINAL — SCRIPT
-   Waitlist form + Supabase + UI interactions
+  NEXUS TERMINAL — SCRIPT
+  Waitlist form + Supabase + UI interactions
    ============================================ */
 
 // ============================================
@@ -22,11 +22,8 @@ const formSuccess = document.getElementById('form-success');
 const nicknameInput = document.getElementById('nickname');
 const emailInput = document.getElementById('email');
 const phoneInput = document.getElementById('phone');
-const waitlistCounter = document.getElementById('waitlist-counter');
 const waitlistCount = document.getElementById('waitlist-count');
 const spotsLeftHero = document.getElementById('spots-left-hero');
-const spotsLeftVal = document.getElementById('spots-left-val');
-const spotsProgressFill = document.getElementById('spots-progress-fill');
 const userSpotNumber = document.getElementById('user-spot-number');
 const navbar = document.getElementById('navbar');
 const mobileMenuBtn = document.getElementById('mobile-menu-btn');
@@ -248,7 +245,7 @@ form.addEventListener('submit', async (e) => {
     // Generate a strong password meeting all possible Supabase complexity rules
     const securePassword = 'Nexus2026!' + crypto.randomUUID().replace(/-/g, '') + 'A#';
 
-    // Insert into Supabase Auth
+    // Step 1: Sign up in Supabase Auth
     const { data, error } = await supabaseClient.auth.signUp({
       email: email,
       password: securePassword,
@@ -260,13 +257,14 @@ form.addEventListener('submit', async (e) => {
       }
     });
 
+    // Check for auth errors FIRST
     if (error) {
       if (error.message?.toLowerCase().includes('already registered') || error.status === 422) {
-        showToast('This email is already on the waitlist! \ud83c\udf89', 'info', 6000);
+        showToast('This email is already on the waitlist! 🎉', 'info', 6000);
         return;
       }
       if (error.message?.toLowerCase().includes('rate limit') || error.status === 429) {
-        showToast('Email rate limit reached. Please wait a few minutes and try again! \u23f3', 'error', 8000);
+        showToast('Email rate limit reached. Please wait a few minutes and try again! ⏳', 'error', 8000);
         return;
       }
       throw error;
@@ -274,11 +272,35 @@ form.addEventListener('submit', async (e) => {
 
     // Supabase returns empty identities array if email already exists
     if (data?.user && data.user.identities && data.user.identities.length === 0) {
-      showToast('This email is already on the waitlist! Check your spam folder for your link. \ud83c\udf89', 'info', 7000);
+      showToast('This email is already on the waitlist! Check your spam folder for your link. 🎉', 'info', 7000);
       return;
     }
 
-    // \u2500\u2500 COUNTDOWN IMMEDIATELY \u2500\u2500
+    // Step 2: Insert into profiles table
+    const { error: dbError } = await supabaseClient
+      .from('profiles')
+      .insert([{ nickname, email, phone_number: phone || null }]);
+    
+    if (dbError) {
+      if (dbError.code === '23505') { // dup email error
+        showToast('This email is already on the waitlist! 🎉', 'info', 6000);
+        return;
+      }
+      throw dbError;
+    }
+
+    // Step 3: Refresh count from DB to get user exact position
+    const totalCount = await fetchWaitlistCount();
+    if (userSpotNumber) userSpotNumber.textContent = `#${totalCount}`;
+    updateCounters(totalCount);
+
+    // Supabase returns empty identities array if email already exists
+    if (data?.user && data.user.identities && data.user.identities.length === 0) {
+      showToast('This email is already on the waitlist! Check your spam folder for your link. 🎉', 'info', 7000);
+      return;
+    }
+
+    // ── COUNTDOWN IMMEDIATELY ──
     // Increment the count right now, no waiting for verification
     const userSpot = currentWaitlistCount + 1;
     if (userSpotNumber) userSpotNumber.textContent = `#${userSpot}`;
@@ -298,7 +320,7 @@ form.addEventListener('submit', async (e) => {
     // Show success state
     form.style.display = 'none';
     formSuccess.classList.add('visible');
-    showToast('You\'re on the list! Check your inbox (or Spam folder) for a confirmation email! \ud83d\ude80', 'info', 7000);
+    showToast('You\'re on the list! Check your inbox (or Spam folder) for a confirmation email! 🚀', 'info', 7000);
 
   } catch (err) {
     console.error('Waitlist submission error:', err);
@@ -326,28 +348,23 @@ function updateCounters(count) {
   
   const percentage = count > 0 ? Math.min(100, Math.max(2, (count / TOTAL_CAPACITY) * 100)) : 0;
   if (spotsProgressFill) spotsProgressFill.style.width = `${percentage}%`;
-
-  // Persist to localStorage so count survives page reloads
-  try {
-    localStorage.setItem('nexus_waitlist_count', String(count));
-  } catch (e) { /* localStorage unavailable */ }
 }
 
-// On page load, restore the saved count from localStorage
-function fetchWaitlistCount() {
+// On page load, count how many users already signed up via Supabase Auth
+async function fetchWaitlistCount() {
   try {
-    const storedCount = localStorage.getItem('nexus_waitlist_count');
-    if (storedCount !== null) {
-      const count = parseInt(storedCount, 10);
-      if (!isNaN(count) && count > 0) {
-        updateCounters(count);
-        return count;
-      }
-    }
+    const { count, error } = await supabaseClient
+      .from('profiles')
+      .select('*', { count: 'exact', head: true });
+    
+    if (error) throw error;
+
+    updateCounters(count || 0);
+    return count || 0;
   } catch (err) {
-    console.warn('Could not fetch waitlist count:', err);
+    console.warn('Could not fetch waitlist count from Supabase.', err);
+    return 0;
   }
-  return 0;
 }
 
 // Fetch count on load
@@ -357,17 +374,17 @@ fetchWaitlistCount();
 //============================================
 // EMAIL VERIFICATION REDIRECT CHECK
 //============================================
-function checkVerificationRedirect() {
+async function checkVerificationRedirect() {
   const urlParams = new URLSearchParams(window.location.search);
 
   const isVerifiedReturn = window.location.hash.includes('access_token=') ||
-                           window.location.hash.includes('type=signup') ||
-                           urlParams.get('type') === 'signup' ||
-                           urlParams.get('code') !== null;
+                          window.location.hash.includes('type=signup') ||
+                          urlParams.get('type') === 'signup' ||
+                          urlParams.get('code') !== null;
 
   if (isVerifiedReturn) {
-    // Just show a welcome-back toast \u2014 countdown already happened on signup
-    showToast('Email verified! Your spot is officially locked in! \ud83d\ude80', 'info', 8000);
+    // Just show a welcome-back toast — countdown already happened on signup
+    showToast('Email verified! Your spot is officially locked in! 🚀', 'info', 8000);
 
     // Clean up the URL tokens from the address bar
     const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
