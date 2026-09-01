@@ -261,45 +261,30 @@ form.addEventListener('submit', async (e) => {
     });
 
     if (error) {
-      // Catch instance where user email is already registered
       if (error.message?.toLowerCase().includes('already registered') || error.status === 422) {
-        showToast('This email is already on the waitlist! 🎉', 'info', 6000);
+        showToast('This email is already on the waitlist! \ud83c\udf89', 'info', 6000);
         return;
       }
       if (error.message?.toLowerCase().includes('rate limit') || error.status === 429) {
-        showToast('Email rate limit reached. Please wait a few minutes or check your inbox/spam folder! ⏳', 'error', 8000);
+        showToast('Email rate limit reached. Please wait a few minutes and try again! \u23f3', 'error', 8000);
         return;
       }
       throw error;
     }
 
-    // Check if user is already registered (Supabase returns empty identities array when email confirmation is enabled)
+    // Supabase returns empty identities array if email already exists
     if (data?.user && data.user.identities && data.user.identities.length === 0) {
-      showToast('This email is already on the waitlist! Please check your spam folder for your link. 🎉', 'info', 7000);
+      showToast('This email is already on the waitlist! Check your spam folder for your link. \ud83c\udf89', 'info', 7000);
       return;
     }
 
-    // Insert into profiles table immediately so DB count increments right away
-    if (data?.user?.id) {
-      try {
-        await supabaseClient.from('profiles').upsert({
-          id: data.user.id,
-          email: email,
-          nickname: nickname,
-          phone: phone || null,
-          created_at: new Date().toISOString()
-        }, { onConflict: 'id' });
-      } catch (dbErr) {
-        console.warn('Profiles table insert on signup:', dbErr);
-      }
-    }
-
-    // Calculate spot position and immediately adjust counter down
+    // \u2500\u2500 COUNTDOWN IMMEDIATELY \u2500\u2500
+    // Increment the count right now, no waiting for verification
     const userSpot = currentWaitlistCount + 1;
     if (userSpotNumber) userSpotNumber.textContent = `#${userSpot}`;
     updateCounters(userSpot);
 
-    // Pulse animation on the spots badge to visually show the spot claimed
+    // Pulse animation on the spots badge
     if (spotsLeftHero) {
       spotsLeftHero.style.transition = 'color 0.4s ease, transform 0.4s ease';
       spotsLeftHero.style.color = '#00ffcc';
@@ -310,13 +295,10 @@ form.addEventListener('submit', async (e) => {
       }, 2000);
     }
 
-    // Success state
+    // Show success state
     form.style.display = 'none';
     formSuccess.classList.add('visible');
-    showToast('Verification email sent! Check your inbox (or Spam folder) to claim your spot! 🚀', 'info', 7000);
-
-    // Refresh live count from DB
-    await fetchWaitlistCount();
+    showToast('You\'re on the list! Check your inbox (or Spam folder) for a confirmation email! \ud83d\ude80', 'info', 7000);
 
   } catch (err) {
     console.error('Waitlist submission error:', err);
@@ -344,102 +326,57 @@ function updateCounters(count) {
   
   const percentage = count > 0 ? Math.min(100, Math.max(2, (count / TOTAL_CAPACITY) * 100)) : 0;
   if (spotsProgressFill) spotsProgressFill.style.width = `${percentage}%`;
+
+  // Persist to localStorage so count survives page reloads
+  try {
+    localStorage.setItem('nexus_waitlist_count', String(count));
+  } catch (e) { /* localStorage unavailable */ }
 }
 
-async function fetchWaitlistCount() {
+// On page load, restore the saved count from localStorage
+function fetchWaitlistCount() {
   try {
-    if (SUPABASE_ANON_KEY === 'YOUR_ANON_KEY_HERE') return 0;
-
-    // Query verified profiles from Supabase
-    const { count, error } = await supabaseClient
-      .from('profiles')
-      .select('*', { count: 'exact', head: true });
-
-    if (!error && count !== null) {
-      updateCounters(count);
-      return count;
+    const storedCount = localStorage.getItem('nexus_waitlist_count');
+    if (storedCount !== null) {
+      const count = parseInt(storedCount, 10);
+      if (!isNaN(count) && count > 0) {
+        updateCounters(count);
+        return count;
+      }
     }
   } catch (err) {
-    console.warn('Could not fetch verified waitlist count:', err);
+    console.warn('Could not fetch waitlist count:', err);
   }
   return 0;
 }
 
-// Fetch verified count on load
+// Fetch count on load
 fetchWaitlistCount();
 
 
 //============================================
 // EMAIL VERIFICATION REDIRECT CHECK
 //============================================
-async function checkVerificationRedirect() {
+function checkVerificationRedirect() {
   const urlParams = new URLSearchParams(window.location.search);
 
-  // When Supabase processes an email link, it returns an access_token, type=signup, or PKCE code
   const isVerifiedReturn = window.location.hash.includes('access_token=') ||
                            window.location.hash.includes('type=signup') ||
                            urlParams.get('type') === 'signup' ||
                            urlParams.get('code') !== null;
 
   if (isVerifiedReturn) {
-    try {
-      // 1. Retrieve the authenticated user session
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      const user = session?.user;
+    // Just show a welcome-back toast \u2014 countdown already happened on signup
+    showToast('Email verified! Your spot is officially locked in! \ud83d\ude80', 'info', 8000);
 
-      if (user) {
-        // 2. Lock in and register the verified user to the profiles table
-        await supabaseClient.from('profiles').upsert({
-          id: user.id,
-          email: user.email,
-          nickname: user.user_metadata?.nickname || 'Trader',
-          phone: user.user_metadata?.phone_number || null,
-          is_verified: true,
-          verified_at: new Date().toISOString()
-        }, { onConflict: 'id' });
-      }
-
-      // 3. Immediately refresh and count down the spots remaining
-      await fetchWaitlistCount();
-
-      // 4. Give the user confirmation toast
-      showToast('Email verified successfully! You have officially locked in your spot! 🚀', 'info', 8000);
-
-      // 5. Visual pulse animation on the hero spots badge
-      if (spotsLeftHero) {
-        spotsLeftHero.style.transition = 'color 0.4s ease, transform 0.4s ease';
-        spotsLeftHero.style.color = '#00ffcc';
-        spotsLeftHero.style.transform = 'scale(1.2)';
-        setTimeout(() => {
-          spotsLeftHero.style.color = '';
-          spotsLeftHero.style.transform = 'scale(1)';
-        }, 2000);
-      }
-
-      // 6. Clean up the URL tokens from the browser address bar
-      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-      window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-
-    } catch (err) {
-      console.warn('Verification process handler error:', err);
-      // Still refresh counters
-      await fetchWaitlistCount();
-    }
+    // Clean up the URL tokens from the address bar
+    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+    window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
   }
 }
 
-// Check for redirect tokens when the DOM contents fully paint
 document.addEventListener('DOMContentLoaded', () => {
   checkVerificationRedirect();
-});
-
-// Also listen for Supabase auth state changes (e.g. email confirmation sign in)
-supabaseClient.auth.onAuthStateChange(async (event, session) => {
-  if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-    if (session?.user?.email_confirmed_at) {
-      await fetchWaitlistCount();
-    }
-  }
 });
 
 
