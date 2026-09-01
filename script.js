@@ -276,24 +276,6 @@ form.addEventListener('submit', async (e) => {
       return;
     }
 
-    // Step 2: Insert into profiles table
-    const { error: dbError } = await supabaseClient
-      .from('profiles')
-      .insert([{ nickname, email, phone_number: phone || null }]);
-    
-    if (dbError) {
-      if (dbError.code === '23505') { // dup email error
-        showToast('This email is already on the waitlist! 🎉', 'info', 6000);
-        return;
-      }
-      throw dbError;
-    }
-
-    // Step 3: Refresh count from DB to get user exact position
-    const totalCount = await fetchWaitlistCount();
-    if (userSpotNumber) userSpotNumber.textContent = `#${totalCount}`;
-    updateCounters(totalCount);
-
     // Supabase returns empty identities array if email already exists
     if (data?.user && data.user.identities && data.user.identities.length === 0) {
       showToast('This email is already on the waitlist! Check your spam folder for your link. 🎉', 'info', 7000);
