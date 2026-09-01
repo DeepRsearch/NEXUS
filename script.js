@@ -325,6 +325,36 @@ async function fetchWaitlistCount() {
 // Fetch count on load
 fetchWaitlistCount();
 
+
+//============================================
+// EMAIL VERIFICATION REDIRECT CHECK
+//============================================
+function checkVerificationRedirect() {
+   const urlParams = new URLSearchParams(window.location.search);
+
+   // When supabase Processes an email link, it can return an access_token,
+   // or a system code via type=signup hashes/query strings.
+   const inVerifiedReturn = window.location.hash.includes('access_token=') || urlParams.get('type') === 'signup';
+
+   if (isVerifieReturn) {
+      // 1. give the user visual confirmation
+      showToast('Email verified successfully! you are officially locked into the Nexus Terminal list! 🚀', 'success', 8000);
+      //2. Playfull uX option: trigger client side animation
+      if (spotsLeftHero) {
+         spotsLeftHero.style.color = '#00ffcc'; //temporary color pulse
+      }
+      //3. clean up the address bar so the ugly tokens vanish from view
+      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.replaceState({ path: cleanUrl }, '', clearUrl);
+   }
+}
+
+//check for redirect tokens when the com contents fully paints
+document.addEventListener('DOMContentLoaded', () => {
+   checkVericationRedirect();
+});
+
+
 // ============================================
 // SMOOTH SCROLL for CTA
 // ============================================
