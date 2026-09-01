@@ -201,36 +201,40 @@
         </div>
 
         <!-- Form -->
-        <form id="waitlist-form" novalidate>
-          <div class="form-group">
+        <form id="waitlist-form">
+          
+          <div class="input-group">
             <label for="nickname">Nickname</label>
-            <input type="text" id="nickname" name="nickname" placeholder="Your desired username" required
-              autocomplete="username">
-            <p class="form-error" id="nickname-error">Please enter a nickname.</p>
+            <input type="text" id="nickname" required placeholder="Your desired nickname...">
+            <!-- The script expects this specific ID pair if validation triggers -->
+            <span id="nickname-error" class="error-msg" style="display:none; color:#ff3366;">Nickname is reqired</span>
           </div>
-          <div class="form-group">
+          
+          <div class="input-group">
             <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
-            <p class="form-error" id="email-error">Please enter a valid email address.</p>
+            <input type="email" id="email" required placeholder="someone@Email.com">
+            <span id="email-error" class="error-msg" style="display:none; color:#ff3366;">Valid Email Required</span>
           </div>
-          <div class="form-group">
-            <label for="phone">Phone Number <span class="optional-label">(optional)</span></label>
-            <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000" autocomplete="tel">
-            <p class="form-error" id="phone-error">Please enter a valid phone number.</p>
-          </div>
-          <button type="submit" class="btn btn-primary btn-submit" id="submit-btn">
-            <span class="btn-text">Reserve My Spot</span>
-            <div class="spinner" aria-hidden="true"></div>
-          </button>
+          
+          <div class="input-group">
+            <label for="phone">Phone Number (optional)</label>
+            <input type="tel" id="phone" placeholder="+1 111 222 1234">
+            <span id="phone-error" class="error-msg" style="display:none; color:#ff3366;">Invalid Phone # Format</span>
+          <div>
+            
+          <button type="submit" id="submit-btn">Reserve My Spot</button>
         </form>
+            
 
         <!-- Success State -->
-        <div class="form-success" id="form-success">
-          <div class="success-icon">
-            <svg viewBox="0 0 24 24">
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
+        <div id="form-success" style="display: none;">
+          <h2>// NODE_RESERVED</h2>
+          <div class="spot_highlight" style="font-size: 24px; color: #00ffcc; margin: 20px 0;">
+            POSITION PENDING: <span id="user-spot-number">#---</span>
           </div>
+          <p>We've dispatched and encrypted verification link to your inbox.</p>
+          <p><strong>Click the email link to lock in and finalize your position!</strong></p>
+        </div>
           
           <div class="spot-number-badge">
             <span class="spot-number-label">YOUR WAITLIST POSITION</span>
