@@ -276,11 +276,9 @@ form.addEventListener('submit', async (e) => {
       return;
     }
 
-    // Supabase returns empty identities array if email already exists
-    if (data?.user && data.user.identities && data.user.identities.length === 0) {
-      showToast('This email is already on the waitlist! Check your spam folder for your link. 🎉', 'info', 7000);
-      return;
-    }
+   const totalCount = await fetchWaitlistCount();
+    const userSpot = totalCount > 0 ? totalCount : currentWaitlistCount + 1;
+    if (userSpotNumber) userSpotNumber.textContent = '#${userSpot}';
 
     // ── COUNTDOWN IMMEDIATELY ──
     // Increment the count right now, no waiting for verification
