@@ -274,7 +274,7 @@ form.addEventListener('submit', async (e) => {
     // Success
     form.style.display = 'none';
     formSuccess.classList.add('visible');
-    showToast('Check your email to verify and claim your spot on the Nexus Terminal waitlist! 🚀', 'info');
+    showToast('Verification email sent! Check your inbox (or Spam folder) to claim your spot! 🚀', 'info', 7000);
 
     // Refresh live count & progress bar
     await fetchWaitlistCount();
