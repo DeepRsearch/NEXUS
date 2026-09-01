@@ -306,7 +306,8 @@ function updateCounters(count) {
 async function fetchWaitlistCount() {
   try {
     if (SUPABASE_ANON_KEY === 'YOUR_ANON_KEY_HERE') return 0;
-    // Query profiles count
+
+    // Query verified profiles from Supabase
     const { count, error } = await supabaseClient
       .from('profiles')
       .select('*', { count: 'exact', head: true });
@@ -316,41 +317,86 @@ async function fetchWaitlistCount() {
       return count;
     }
   } catch (err) {
-    console.warn('Could not fetch waitlist count:', err);
+    console.warn('Could not fetch verified waitlist count:', err);
   }
   return 0;
 }
 
-// Fetch count on load
+// Fetch verified count on load
 fetchWaitlistCount();
 
 
 //============================================
 // EMAIL VERIFICATION REDIRECT CHECK
 //============================================
-function checkVerificationRedirect() {
+async function checkVerificationRedirect() {
   const urlParams = new URLSearchParams(window.location.search);
 
-  // When supabase processes an email link, it can return an access_token,
-  // or a system code via type=signup hashes/query strings.
-  const isVerifiedReturn = window.location.hash.includes('access_token=') || urlParams.get('type') === 'signup';
+  // When Supabase processes an email link, it returns an access_token, type=signup, or PKCE code
+  const isVerifiedReturn = window.location.hash.includes('access_token=') ||
+                           window.location.hash.includes('type=signup') ||
+                           urlParams.get('type') === 'signup' ||
+                           urlParams.get('code') !== null;
 
   if (isVerifiedReturn) {
-    // 1. Give the user visual confirmation
-    showToast('Email verified successfully! You are officially locked into the Nexus Terminal list! 🚀', 'info', 8000);
-    // 2. Playful UX option: trigger client side animation
-    if (spotsLeftHero) {
-      spotsLeftHero.style.color = '#00ffcc'; // temporary color pulse
+    try {
+      // 1. Retrieve the authenticated user session
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      const user = session?.user;
+
+      if (user) {
+        // 2. Lock in and register the verified user to the profiles table
+        await supabaseClient.from('profiles').upsert({
+          id: user.id,
+          email: user.email,
+          nickname: user.user_metadata?.nickname || 'Trader',
+          phone: user.user_metadata?.phone_number || null,
+          is_verified: true,
+          verified_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+      }
+
+      // 3. Immediately refresh and count down the spots remaining
+      await fetchWaitlistCount();
+
+      // 4. Give the user confirmation toast
+      showToast('Email verified successfully! You have officially locked in your spot! 🚀', 'info', 8000);
+
+      // 5. Visual pulse animation on the hero spots badge
+      if (spotsLeftHero) {
+        spotsLeftHero.style.transition = 'color 0.4s ease, transform 0.4s ease';
+        spotsLeftHero.style.color = '#00ffcc';
+        spotsLeftHero.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+          spotsLeftHero.style.color = '';
+          spotsLeftHero.style.transform = 'scale(1)';
+        }, 2000);
+      }
+
+      // 6. Clean up the URL tokens from the browser address bar
+      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+
+    } catch (err) {
+      console.warn('Verification process handler error:', err);
+      // Still refresh counters
+      await fetchWaitlistCount();
     }
-    // 3. Clean up the address bar so the tokens vanish from view
-    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
   }
 }
 
 // Check for redirect tokens when the DOM contents fully paint
 document.addEventListener('DOMContentLoaded', () => {
   checkVerificationRedirect();
+});
+
+// Also listen for Supabase auth state changes (e.g. email confirmation sign in)
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+    if (session?.user?.email_confirmed_at) {
+      await fetchWaitlistCount();
+    }
+  }
 });
 
 
