@@ -245,7 +245,7 @@ form.addEventListener('submit', async (e) => {
       return;
     }
 
-    // Insert into Supabase
+    // Insert into Supabase Auth
     const { data, error } = await supabaseClient.auth.signUp({
       email: email,
       // Since it's a waitlist, generate a secure random password in background
@@ -267,16 +267,43 @@ form.addEventListener('submit', async (e) => {
       throw error;
     }
 
-    // Calculate spot position
+    // Insert into profiles table immediately so DB count increments right away
+    if (data?.user?.id) {
+      try {
+        await supabaseClient.from('profiles').upsert({
+          id: data.user.id,
+          email: email,
+          nickname: nickname,
+          phone: phone || null,
+          created_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+      } catch (dbErr) {
+        console.warn('Profiles table insert on signup:', dbErr);
+      }
+    }
+
+    // Calculate spot position and immediately adjust counter down
     const userSpot = currentWaitlistCount + 1;
     if (userSpotNumber) userSpotNumber.textContent = `#${userSpot}`;
+    updateCounters(userSpot);
 
-    // Success
+    // Pulse animation on the spots badge to visually show the spot claimed
+    if (spotsLeftHero) {
+      spotsLeftHero.style.transition = 'color 0.4s ease, transform 0.4s ease';
+      spotsLeftHero.style.color = '#00ffcc';
+      spotsLeftHero.style.transform = 'scale(1.2)';
+      setTimeout(() => {
+        spotsLeftHero.style.color = '';
+        spotsLeftHero.style.transform = 'scale(1)';
+      }, 2000);
+    }
+
+    // Success state
     form.style.display = 'none';
     formSuccess.classList.add('visible');
     showToast('Verification email sent! Check your inbox (or Spam folder) to claim your spot! 🚀', 'info', 7000);
 
-    // Refresh live count & progress bar
+    // Refresh live count from DB
     await fetchWaitlistCount();
 
   } catch (err) {
