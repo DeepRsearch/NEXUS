@@ -320,8 +320,11 @@ form.addEventListener('submit', async (e) => {
 
   } catch (err) {
     console.error('Waitlist submission error:', err);
-    const errorMsg = err?.message || err?.error_description || 'Something went wrong. Please try again.';
-    showToast(errorMsg, 'error', 7000);
+    let errorMsg = err?.message || err?.error_description;
+    if (!errorMsg && typeof err === 'object') {
+      try { errorMsg = JSON.stringify(err); } catch (e) { errorMsg = String(err); }
+    }
+    showToast(errorMsg || 'Could not complete signup. Please check console for details.', 'error', 8000);
   } finally {
     submitBtn.classList.remove('loading');
     submitBtn.disabled = false;
