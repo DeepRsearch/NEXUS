@@ -246,24 +246,27 @@ form.addEventListener('submit', async (e) => {
     }
 
     // Insert into Supabase
-    const { data, error } = await supabaseClient
-      .from('waitlist_signups')
-      .insert([
-        {
-          nickname: nickname,
-          email: email,
-          phone: phone || null,
-        }
-      ]);
+    const { data, error } = await supabaseClient.auth.signUp({
+       email: eamil,
+       //since its just a waitlist, we make a random36 string in background
+       password: crypto.randomUUID() + Math.random().toString(36),
+       options: {
+          data: {
+             nickname : nickname,
+             phone_number: phone || null
+          }
+       }
+    });
 
-    if (error) {
-      // Handle duplicate email
-      if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
-        showToast('This email is already on the waitlist! 🎉', 'info');
-        return;
-      }
-      throw error;
-    }
+     if (error) {
+        //Catch instance where user email is already registered
+        if (error.message.includes('already registered') || error.status === 422) {
+           showToast('Tjis email is already on the waitlist! 🎉', 'info');
+           return;
+        }
+        throw error;
+     }
+     
 
     // Calculate spot position
     const userSpot = currentWaitlistCount + 1;
@@ -272,7 +275,7 @@ form.addEventListener('submit', async (e) => {
     // Success
     form.style.display = 'none';
     formSuccess.classList.add('visible');
-    showToast('Welcome to the Nexus Terminal waitlist! 🚀');
+    showToast('Check your email to Verify and Claim your spot on the Nexus Terminal waitlist! 🚀', 'Success!');
 
     // Refresh live count & progress bar
     await fetchWaitlistCount();
@@ -304,9 +307,9 @@ function updateCounters(count) {
 async function fetchWaitlistCount() {
   try {
     if (SUPABASE_ANON_KEY === 'YOUR_ANON_KEY_HERE') return 0;
-
+      // changes target from waitlist to profiles
     const { count, error } = await supabaseClient
-      .from('waitlist_signups')
+      .from('profiles')
       .select('*', { count: 'exact', head: true });
 
     if (!error && count !== null) {
