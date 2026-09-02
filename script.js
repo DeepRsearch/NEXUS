@@ -362,6 +362,14 @@ function updateCounters(count) {
 // On page load, count how many users already signed up via Supabase Auth
 async function fetchWaitlistCount() {
   try {
+    // 1. Try secure RPC function first (recommended: doesn't require SELECT access on profiles table)
+    const { data: rpcCount, error: rpcError } = await supabaseClient.rpc('get_waitlist_count');
+    if (!rpcError && typeof rpcCount === 'number') {
+      updateCounters(rpcCount);
+      return rpcCount;
+    }
+
+    // 2. Fallback to head count query
     const { count, error } = await supabaseClient
       .from('profiles')
       .select('*', { count: 'exact', head: true });
