@@ -260,11 +260,11 @@ form.addEventListener('submit', async (e) => {
     // Check for auth errors FIRST
     if (error) {
       if (error.message?.toLowerCase().includes('already registered') || error.status === 422) {
-        showToast('This email is already on the waitlist! 🎉', 'info', 6000);
+        showToast('This email is already on the waitlist! \ud83c\udf89', 'info', 6000);
         return;
       }
       if (error.message?.toLowerCase().includes('rate limit') || error.status === 429) {
-        showToast('Email rate limit reached. Please wait a few minutes and try again! ⏳', 'error', 8000);
+        showToast('Email rate limit reached. Please wait a few minutes and try again! \u23f3', 'error', 8000);
         return;
       }
       throw error;
@@ -272,39 +272,17 @@ form.addEventListener('submit', async (e) => {
 
     // Supabase returns empty identities array if email already exists
     if (data?.user && data.user.identities && data.user.identities.length === 0) {
-      showToast('This email is already on the waitlist! Check your spam folder for your link. 🎉', 'info', 7000);
+      showToast('This email is already on the waitlist! Check your spam folder for your link. \ud83c\udf89', 'info', 7000);
       return;
     }
 
-    // Step 2: Insert into profiles table
-    const { error: dbError } = await supabaseClient
-      .from('profiles')
-      .insert([{ nickname, email, phone_number: phone || null }]);
-    
-    if (dbError) {
-      if (dbError.code === '23505') { // dup email error
-        showToast('This email is already on the waitlist! 🎉', 'info', 6000);
-        return;
-      }
-      throw dbError;
-    }
+    // Step 2: profiles row is created automatically by the
+    //         handle_new_user() trigger on auth.users — no manual insert needed.
 
-    // Step 3: Refresh count from DB to get user exact position
+    // Refresh count from DB to get user's exact position
     const totalCount = await fetchWaitlistCount();
     if (userSpotNumber) userSpotNumber.textContent = `#${totalCount}`;
     updateCounters(totalCount);
-
-    // Supabase returns empty identities array if email already exists
-    if (data?.user && data.user.identities && data.user.identities.length === 0) {
-      showToast('This email is already on the waitlist! Check your spam folder for your link. 🎉', 'info', 7000);
-      return;
-    }
-
-    // ── COUNTDOWN IMMEDIATELY ──
-    // Increment the count right now, no waiting for verification
-    const userSpot = currentWaitlistCount + 1;
-    if (userSpotNumber) userSpotNumber.textContent = `#${userSpot}`;
-    updateCounters(userSpot);
 
     // Pulse animation on the spots badge
     if (spotsLeftHero) {
@@ -320,7 +298,7 @@ form.addEventListener('submit', async (e) => {
     // Show success state
     form.style.display = 'none';
     formSuccess.classList.add('visible');
-    showToast('You\'re on the list! Check your inbox (or Spam folder) for a confirmation email! 🚀', 'info', 7000);
+    showToast('You\'re on the list! Check your inbox (or Spam folder) for a confirmation email! \ud83d\ude80', 'info', 7000);
 
   } catch (err) {
     console.error('Waitlist submission error:', err);
@@ -391,14 +369,14 @@ async function checkVerificationRedirect() {
   // Wait for the session to be established via onAuthStateChange.
   supabaseClient.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session) {
-      showToast('Email verified! Your spot is officially locked in! 🚀', 'info', 8000);
+      showToast('Email verified! Your spot is officially locked in! \ud83d\ude80', 'info', 8000);
     }
   });
 
   // Fallback: check if a session already exists (implicit flow / hash token)
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
-    showToast('Email verified! Your spot is officially locked in! 🚀', 'info', 8000);
+    showToast('Email verified! Your spot is officially locked in! \ud83d\ude80', 'info', 8000);
   }
 
   // Clean up the URL tokens from the address bar
