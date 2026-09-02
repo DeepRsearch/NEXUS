@@ -290,11 +290,11 @@ form.addEventListener('submit', async (e) => {
     // Check for auth errors FIRST
     if (error) {
       if (error.message?.toLowerCase().includes('already registered') || error.status === 422) {
-        showToast('This email is already on the waitlist! \ud83c\udf89', 'info', 6000);
+        showToast('This email is already on the waitlist! 🎉', 'info', 6000);
         return;
       }
       if (error.message?.toLowerCase().includes('rate limit') || error.status === 429) {
-        showToast('Email rate limit reached. Please wait a few minutes and try again! \u23f3', 'error', 8000);
+        showToast('Email rate limit reached. Please wait a few minutes and try again! ⏳', 'error', 8000);
         return;
       }
       throw error;
@@ -302,7 +302,7 @@ form.addEventListener('submit', async (e) => {
 
     // Supabase returns empty identities array if email already exists
     if (data?.user && data.user.identities && data.user.identities.length === 0) {
-      showToast('This email is already on the waitlist! Check your spam folder for your link. \ud83c\udf89', 'info', 7000);
+      showToast('This email is already on the waitlist! Check your spam folder for your link. 🎉', 'info', 7000);
       return;
     }
 
@@ -328,7 +328,7 @@ form.addEventListener('submit', async (e) => {
     // Show success state
     form.style.display = 'none';
     formSuccess.classList.add('visible');
-    showToast('You\'re on the list! Check your inbox (or Spam folder) for a confirmation email! \ud83d\ude80', 'info', 7000);
+    showToast('You\'re on the list! Check your inbox (or Spam folder) for a confirmation email! 🚀', 'info', 7000);
 
   } catch (err) {
     console.error('Waitlist submission error:', err);
@@ -356,11 +356,7 @@ function updateCounters(count) {
   const spotsLeft = Math.max(0, TOTAL_CAPACITY - count);
   
   if (spotsLeftHero) spotsLeftHero.textContent = spotsLeft.toLocaleString();
-  if (spotsLeftVal) spotsLeftVal.textContent = spotsLeft.toLocaleString();
   if (waitlistCount) waitlistCount.textContent = count.toLocaleString();
-  
-  const percentage = count > 0 ? Math.min(100, Math.max(2, (count / TOTAL_CAPACITY) * 100)) : 0;
-  if (spotsProgressFill) spotsProgressFill.style.width = `${percentage}%`;
 }
 
 // On page load, count how many users already signed up via Supabase Auth
@@ -404,14 +400,14 @@ async function checkVerificationRedirect() {
   // Wait for the session to be established via onAuthStateChange.
   supabaseClient.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session) {
-      showToast('Email verified! Your spot is officially locked in! \ud83d\ude80', 'info', 8000);
+      showToast('Email verified! Your spot is officially locked in! 🚀', 'info', 8000);
     }
   });
 
   // Fallback: check if a session already exists (implicit flow / hash token)
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
-    showToast('Email verified! Your spot is officially locked in! \ud83d\ude80', 'info', 8000);
+    showToast('Email verified! Your spot is officially locked in! 🚀', 'info', 8000);
   }
 
   // Clean up the URL tokens from the address bar
