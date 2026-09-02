@@ -223,10 +223,10 @@ form.addEventListener('submit', async (e) => {
 
   try {
     // Generate a strong password meeting all Supabase complexity rules
-    const securePassword = 'Nexus2026!' + crypto.randomUUID().replace(/-/g, '') + 'A#';
+    const securePassword = 'NexusterminaL2026!' + crypto.randomUUID().replace(/-/g, '') + 'A#';
 
     // Insert into Supabase Auth (Database Trigger automatically syncs to 'profiles' table)
-    const { data, error } = await supabaseClient.auth.users({
+    const { data, error } = await supabaseClient.auth.user({
       email: email,
       password: securePassword,
       options: {
