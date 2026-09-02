@@ -209,6 +209,10 @@
             <div id="phone-error" class="form-error">Please enter a valid phone number</div>
           </div>
 
+          <!-- Cloudflare Turnstile CAPTCHA -->
+          <div id="turnstile-widget" class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITE_KEY" data-theme="dark" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired"></div>
+          <div id="turnstile-error" class="form-error">Please complete the verification</div>
+
           <button type="submit" class="btn btn-primary btn-submit" id="submit-btn">
             <span class="btn-text">Reserve My Spot</span>
             <span class="spinner" aria-hidden="true"></span>
@@ -247,6 +251,8 @@
     </div>
   </footer>
 
+  <!-- Cloudflare Turnstile -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <!-- Supabase JS (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="script.js"></script>

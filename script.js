@@ -34,6 +34,28 @@ const TOTAL_CAPACITY = 500;
 let currentWaitlistCount = 0;
 
 // ============================================
+// CLOUDFLARE TURNSTILE
+// ============================================
+let turnstileToken = null;
+
+// Callback when Turnstile challenge is solved
+function onTurnstileSuccess(token) {
+  turnstileToken = token;
+  // Clear any previous error
+  const errEl = document.getElementById('turnstile-error');
+  if (errEl) errEl.classList.remove('visible');
+}
+
+// Callback when Turnstile token expires
+function onTurnstileExpired() {
+  turnstileToken = null;
+}
+
+// Make callbacks available globally for Turnstile
+window.onTurnstileSuccess = onTurnstileSuccess;
+window.onTurnstileExpired = onTurnstileExpired;
+
+// ============================================
 // STARFIELD ANIMATION
 // ============================================
 (function initStarfield() {
@@ -218,6 +240,13 @@ form.addEventListener('submit', async (e) => {
 
   if (!isValid) return;
 
+  // Validate Turnstile
+  if (!turnstileToken) {
+    const turnstileErr = document.getElementById('turnstile-error');
+    if (turnstileErr) turnstileErr.classList.add('visible');
+    return;
+  }
+
   // Set loading state
   submitBtn.classList.add('loading');
   submitBtn.disabled = true;
@@ -253,7 +282,8 @@ form.addEventListener('submit', async (e) => {
         data: {
           nickname: nickname,
           phone_number: phone || null
-        }
+        },
+        captchaToken: turnstileToken
       }
     });
 
@@ -310,6 +340,11 @@ form.addEventListener('submit', async (e) => {
   } finally {
     submitBtn.classList.remove('loading');
     submitBtn.disabled = false;
+    // Reset Turnstile for next attempt
+    turnstileToken = null;
+    if (typeof turnstile !== 'undefined') {
+      turnstile.reset('#turnstile-widget');
+    }
   }
 });
 
