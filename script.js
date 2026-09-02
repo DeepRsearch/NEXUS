@@ -226,7 +226,7 @@ form.addEventListener('submit', async (e) => {
     const securePassword = 'Nexus2026!' + crypto.randomUUID().replace(/-/g, '') + 'A#';
 
     // Insert into Supabase Auth (Database Trigger automatically syncs to 'profiles' table)
-    const { data, error } = await supabaseClient.auth.user({
+    const { data, error } = await supabaseClient.auth.signup({
       email: email,
       password: securePassword,
       options: {
