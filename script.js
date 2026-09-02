@@ -6,6 +6,8 @@
 // ============================================
 // SUPABASE CONFIG
 // ============================================
+// ⚠️ REPLACE THESE WITH YOUR ACTUAL VALUES FROM:
+//    Supabase Dashboard → Settings → API
 const SUPABASE_URL = 'https://uweekccaumkjukwsdbzk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3ZWVrY2NhdW1ranVrd3NkYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3ODE0NzMsImV4cCI6MjEwMzM1NzQ3M30.ApqOhNGJffgI5XO2rYmAAESYWZEFdhQFcU6EUE6ZMhc';
 
@@ -180,10 +182,9 @@ function clearFieldError(inputEl, errorEl) {
 
 // Clear errors on input
 [nicknameInput, emailInput, phoneInput].forEach(input => {
-  if (!input) return;
   input.addEventListener('input', () => {
     const errorEl = document.getElementById(`${input.id}-error`);
-    if (errorEl) clearFieldError(input, errorEl);
+    clearFieldError(input, errorEl);
   });
 });
 
@@ -222,11 +223,30 @@ form.addEventListener('submit', async (e) => {
   submitBtn.disabled = true;
 
   try {
-    // Generate a strong password meeting all Supabase complexity rules
-    const securePassword = 'NexusterminaL2026!' + crypto.randomUUID().replace(/-/g, '') + 'A#';
+    // Check if Supabase is configured
+    if (SUPABASE_ANON_KEY === 'YOUR_ANON_KEY_HERE') {
+      // Demo mode — show success without hitting Supabase
+      console.warn('⚠️ Supabase anon key not configured. Running in demo mode.');
+      showToast('Demo mode — connect Supabase to save signups.', 'info');
 
-    // Insert into Supabase Auth (Database Trigger automatically syncs to 'profiles' table)
-    const { data, error } = await supabaseClient.auth.user({
+      // Simulate delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Demo mode — show success
+      const spotPos = currentWaitlistCount + 1;
+      if (userSpotNumber) userSpotNumber.textContent = `#${spotPos}`;
+      updateCounters(spotPos);
+
+      form.style.display = 'none';
+      formSuccess.classList.add('visible');
+      return;
+    }
+
+    // Generate a strong password meeting all possible Supabase complexity rules
+    const securePassword = 'Nexus2026!' + crypto.randomUUID().replace(/-/g, '') + 'A#';
+
+    // Step 1: Sign up in Supabase Auth
+    const { data, error } = await supabaseClient.auth.signUp({
       email: email,
       password: securePassword,
       options: {
@@ -237,6 +257,7 @@ form.addEventListener('submit', async (e) => {
       }
     });
 
+    // Check for auth errors FIRST
     if (error) {
       if (error.message?.toLowerCase().includes('already registered') || error.status === 422) {
         showToast('This email is already on the waitlist! 🎉', 'info', 6000);
@@ -255,10 +276,33 @@ form.addEventListener('submit', async (e) => {
       return;
     }
 
-    // Refresh database count after successful trigger execution
-    const totalCount = await fetchWaitlistCount();
-    const userSpot = totalCount > 0 ? totalCount : currentWaitlistCount + 1;
+    // Step 2: Insert into profiles table
+    const { error: dbError } = await supabaseClient
+      .from('profiles')
+      .insert([{ nickname, email, phone_number: phone || null }]);
     
+    if (dbError) {
+      if (dbError.code === '23505') { // dup email error
+        showToast('This email is already on the waitlist! 🎉', 'info', 6000);
+        return;
+      }
+      throw dbError;
+    }
+
+    // Step 3: Refresh count from DB to get user exact position
+    const totalCount = await fetchWaitlistCount();
+    if (userSpotNumber) userSpotNumber.textContent = `#${totalCount}`;
+    updateCounters(totalCount);
+
+    // Supabase returns empty identities array if email already exists
+    if (data?.user && data.user.identities && data.user.identities.length === 0) {
+      showToast('This email is already on the waitlist! Check your spam folder for your link. 🎉', 'info', 7000);
+      return;
+    }
+
+    // ── COUNTDOWN IMMEDIATELY ──
+    // Increment the count right now, no waiting for verification
+    const userSpot = currentWaitlistCount + 1;
     if (userSpotNumber) userSpotNumber.textContent = `#${userSpot}`;
     updateCounters(userSpot);
 
@@ -299,10 +343,14 @@ function updateCounters(count) {
   const spotsLeft = Math.max(0, TOTAL_CAPACITY - count);
   
   if (spotsLeftHero) spotsLeftHero.textContent = spotsLeft.toLocaleString();
+  if (spotsLeftVal) spotsLeftVal.textContent = spotsLeft.toLocaleString();
   if (waitlistCount) waitlistCount.textContent = count.toLocaleString();
+  
+  const percentage = count > 0 ? Math.min(100, Math.max(2, (count / TOTAL_CAPACITY) * 100)) : 0;
+  if (spotsProgressFill) spotsProgressFill.style.width = `${percentage}%`;
 }
 
-// Fetch user count directly from public profiles table
+// On page load, count how many users already signed up via Supabase Auth
 async function fetchWaitlistCount() {
   try {
     const { count, error } = await supabaseClient
@@ -314,40 +362,57 @@ async function fetchWaitlistCount() {
     updateCounters(count || 0);
     return count || 0;
   } catch (err) {
-    console.warn('Could not fetch waitlist count from Supabase:', err);
+    console.warn('Could not fetch waitlist count from Supabase.', err);
     return 0;
   }
 }
 
-// Fetch count on initial page load
+// Fetch count on load
 fetchWaitlistCount();
 
-// ============================================
+
+//============================================
 // EMAIL VERIFICATION REDIRECT CHECK
-// ============================================
+// Uses Supabase v2 API (auth.getSession / onAuthStateChange)
+//============================================
 async function checkVerificationRedirect() {
   const urlParams = new URLSearchParams(window.location.search);
 
+  // Supabase v2 PKCE flow sends ?code=... after email confirmation
+  // Legacy implicit flow sends #access_token=...&type=signup in the hash
   const isVerifiedReturn = window.location.hash.includes('access_token=') ||
-                          window.location.hash.includes('type=signup') ||
-                          urlParams.get('type') === 'signup' ||
-                          urlParams.get('code') !== null;
+                           window.location.hash.includes('type=signup') ||
+                           urlParams.get('type') === 'signup' ||
+                           urlParams.get('code') !== null;
 
-  if (isVerifiedReturn) {
+  if (!isVerifiedReturn) return;
+
+  // For PKCE (?code=...), Supabase v2 exchanges the code automatically.
+  // Wait for the session to be established via onAuthStateChange.
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      showToast('Email verified! Your spot is officially locked in! 🚀', 'info', 8000);
+    }
+  });
+
+  // Fallback: check if a session already exists (implicit flow / hash token)
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
     showToast('Email verified! Your spot is officially locked in! 🚀', 'info', 8000);
-
-    // Clean up the URL tokens from the address bar
-    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
   }
+
+  // Clean up the URL tokens from the address bar
+  const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+  window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   checkVerificationRedirect();
 });
 
+
 // ============================================
-// SMOOTH SCROLL FOR CTA
+// SMOOTH SCROLL for CTA
 // ============================================
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
